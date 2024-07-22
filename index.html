@@ -14,7 +14,7 @@
         h1, h2 {
             text-align: center;
         }
-        input, button {
+        input, button, select {
             display: block;
             width: 100%;
             margin: 10px 0;
@@ -34,7 +34,11 @@
 </head>
 <body>
     <h1>Konversi Kamus</h1>
-    <input type="text" id="inputText" placeholder="Masukkan kalimat">
+    <select id="conversionType">
+        <option value="abjadToBilangan">Abjad ke Bilangan</option>
+        <option value="bilanganToAbjad">Bilangan ke Abjad</option>
+    </select>
+    <input type="text" id="inputText" placeholder="Masukkan kalimat atau bilangan">
     <button onclick="processInput()">Proses</button>
     <div id="result"></div>
 
@@ -54,22 +58,6 @@
 
         function convertToBilangan(input) {
             return input.split('').map(char => kamus[char] || char).join(' ');
-        }
-
-        function alternateSumSubtract(numbers) {
-            const nums = numbers.split(' ').map(Number);
-            let result = nums[0];
-            let explanation = nums[0].toString();
-            for (let i = 1; i < nums.length; i++) {
-                if (i % 2 === 1) {
-                    result -= nums[i];
-                    explanation += ` - ${nums[i]}`;
-                } else {
-                    result += nums[i];
-                    explanation += ` + ${nums[i]}`;
-                }
-            }
-            return { result, explanation };
         }
 
         function convertToAbjad(number) {
@@ -93,6 +81,40 @@
             return { result, explanation };
         }
 
+        function bilanganToAbjad(input) {
+            const numbers = input.split(' ').map(Number);
+            let result = '';
+            let explanation = '';
+
+            for (let i = 0; i < numbers.length; i++) {
+                if (reversedKamus[numbers[i]] !== undefined) {
+                    result += reversedKamus[numbers[i]];
+                    explanation += `${numbers[i]} = ${reversedKamus[numbers[i]]}, `;
+                } else {
+                    result += '?';
+                    explanation += `${numbers[i]} = ? (tidak ada dalam kamus), `;
+                }
+            }
+
+            return { result, explanation: explanation.slice(0, -2) };
+        }
+
+        function alternateSumSubtract(numbers) {
+            const nums = numbers.split(' ').map(Number);
+            let result = nums[0];
+            let explanation = nums[0].toString();
+            for (let i = 1; i < nums.length; i++) {
+                if (i % 2 === 1) {
+                    result -= nums[i];
+                    explanation += ` - ${nums[i]}`;
+                } else {
+                    result += nums[i];
+                    explanation += ` + ${nums[i]}`;
+                }
+            }
+            return { result, explanation };
+        }
+
         function processStep4(input) {
             const numbers = input.split('').map(char => kamus[char]).join('');
             const sum = numbers.split('').reduce((a, b) => parseInt(a) + parseInt(b), 0);
@@ -112,34 +134,54 @@
             return { result, explanation };
         }
 
+        function convertToTextAbjad(numbers) {
+            const numArray = numbers.split(' ').map(Number);
+            let result = '';
+            for (let i = 0; i < numArray.length; i++) {
+                result += reversedKamus[numArray[i].toString()];
+            }
+            return result;
+        }
+
         function processInput() {
             const input = document.getElementById('inputText').value;
+            const conversionType = document.getElementById('conversionType').value;
             let result = '<h2>Hasil:</h2>';
 
-            // Langkah 1
-            const bilangan = convertToBilangan(input);
-            result += `<p><strong>1. Konversi ke bilangan:</strong> ${bilangan}</p>`;
-            result += `<p class="explanation">Penjelasan: ${input.split('').map(char => `${char} = ${kamus[char]}`).join(', ')}</p>`;
+            if (conversionType === 'abjadToBilangan') {
+                // Langkah 1
+                const bilangan = convertToBilangan(input);
+                result += `<p><strong>1. Konversi ke bilangan:</strong> ${bilangan}</p>`;
+                result += `<p class="explanation">Penjelasan: ${input.split('').map(char => `${char} = ${kamus[char]}`).join(', ')}</p>`;
 
-            // Langkah 2
-            const { result: sumSubtract, explanation: sumSubtractExplanation } = alternateSumSubtract(bilangan);
-            result += `<p><strong>2. Penjumlahan dan pengurangan:</strong> ${sumSubtract}</p>`;
-            result += `<p class="explanation">Penjelasan: ${sumSubtractExplanation} = ${sumSubtract}</p>`;
+                // Langkah 2
+                const { result: sumSubtract, explanation: sumSubtractExplanation } = alternateSumSubtract(bilangan);
+                result += `<p><strong>2. Penjumlahan dan pengurangan:</strong> ${sumSubtract}</p>`;
+                result += `<p class="explanation">Penjelasan: ${sumSubtractExplanation} = ${sumSubtract}</p>`;
 
-            // Langkah 3
-            const { result: abjad, explanation: abjadExplanation } = convertToAbjad(sumSubtract);
-            result += `<p><strong>3. Konversi ke abjad:</strong> ${abjad}</p>`;
-            result += `<p class="explanation">Penjelasan: ${abjadExplanation}</p>`;
+                // Langkah 3
+                const { result: abjad, explanation: abjadExplanation } = convertToAbjad(sumSubtract);
+                result += `<p><strong>3. Konversi ke abjad:</strong> ${abjad}</p>`;
+                result += `<p class="explanation">Penjelasan: ${abjadExplanation}</p>`;
 
-            // Langkah 4
-            const { result: step4Result, explanation: step4Explanation } = processStep4(abjad);
-            result += `<p><strong>4. Konversi lanjutan:</strong> ${step4Result}</p>`;
-            result += `<p class="explanation">Penjelasan: ${step4Explanation}</p>`;
+                // Langkah 4
+                const { result: step4Result, explanation: step4Explanation } = processStep4(abjad);
+                result += `<p><strong>4. Konversi lanjutan:</strong> ${step4Result}</p>`;
+                result += `<p class="explanation">Penjelasan: ${step4Explanation}</p>`;
 
-            // Langkah 5
-            const { result: finalResult, explanation: finalExplanation } = processStep5(step4Result);
-            result += `<p><strong>5. Hasil akhir:</strong> ${finalResult}</p>`;
-            result += `<p class="explanation">Penjelasan: ${finalExplanation}</p>`;
+                // Langkah 5
+                const { result: finalResult, explanation: finalExplanation } = processStep5(step4Result);
+                result += `<p><strong>5. Hasil akhir:</strong> ${finalResult}</p>`;
+                result += `<p class="explanation">Penjelasan: ${finalExplanation}</p>`;
+
+                // Konversi hasil akhir kembali ke teks abjad
+                const finalTextAbjad = convertToTextAbjad(finalResult);
+                result += `<p><strong>Hasil teks kembali:</strong> ${finalTextAbjad}</p>`;
+            } else {
+                const { result: abjad, explanation: abjadExplanation } = bilanganToAbjad(input);
+                result += `<p><strong>Konversi bilangan ke abjad:</strong> ${abjad}</p>`;
+                result += `<p class="explanation">Penjelasan: ${abjadExplanation}</p>`;
+            }
 
             document.getElementById('result').innerHTML = result;
         }
