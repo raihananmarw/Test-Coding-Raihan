@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Operasi Matematika Kamus</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1, h2 {
+            text-align: center;
+        }
+        input, button {
+            display: block;
+            width: 100%;
+            margin: 10px 0;
+            padding: 10px;
+        }
+        #result {
+            margin-top: 20px;
+            border: 1px solid #ddd;
+            padding: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Operasi Matematika Kamus</h1>
+    <input type="text" id="inputText" placeholder="Masukkan kalimat atau angka">
+    <button onclick="processInput()">Proses</button>
+    <div id="result"></div>
+
+    <script>
+        const kamus = {
+            'A': '0', 'B': '1', 'C': '1', 'D': '1', 'E': '2', 'F': '3', 'G': '3', 'H': '3', 'I': '4',
+            'J': '5', 'K': '5', 'L': '5', 'M': '5', 'N': '5', 'O': '6', 'P': '7', 'Q': '7', 'R': '7',
+            'S': '7', 'T': '7', 'U': '8', 'V': '9', 'W': '9', 'X': '9', 'Y': '9', 'Z': '9',
+            'a': '9', 'b': '8', 'c': '8', 'd': '8', 'e': '7', 'f': '6', 'g': '6', 'h': '6', 'i': '5',
+            'j': '4', 'k': '4', 'l': '4', 'm': '4', 'n': '4', 'o': '3', 'p': '2', 'q': '2', 'r': '2',
+            's': '2', 't': '2', 'u': '1', 'v': '0', 'w': '0', 'x': '0', 'y': '0', 'z': '0', ' ': '0'
+        };
+
+        const reversedKamus = {
+            '0': 'A', '1': 'B', '2': 'E', '3': 'F', '4': 'I', '5': 'J', '6': 'O', '7': 'P', '8': 'U', '9': 'V'
+        };
+
+        function convertToNumbers(input) {
+            return input.split('').map(char => kamus[char] || char).join(' ');
+        }
+
+        function alternateSum(numbers) {
+            const nums = numbers.split(' ').map(Number);
+            return nums.reduce((sum, num, index) => index % 2 === 0 ? sum + num : sum - num, 0);
+        }
+
+        function convertToLetters(number) {
+            const absNumber = Math.abs(number);
+            let result = '';
+            let remaining = absNumber;
+
+            while (remaining > 0 || result.length === 0) {
+                for (let i = 9; i >= 0; i--) {
+                    if (remaining >= i || result.length === 0) {
+                        result += reversedKamus[i.toString()];
+                        remaining -= i;
+                        break;
+                    }
+                }
+            }
+
+            return result;
+        }
+
+        function processInput() {
+            const input = document.getElementById('inputText').value;
+            let result = '<h2>Hasil:</h2>';
+
+            // Fungsi 1: Konversi ke angka
+            const numbers = convertToNumbers(input);
+            result += '<p><strong>1. Konversi ke angka:</strong> ' + numbers + '</p>';
+
+            // Fungsi 2: Penjumlahan dan pengurangan bergantian
+            const sum = alternateSum(numbers);
+            result += '<p><strong>2. Penjumlahan dan pengurangan:</strong> ' + sum + '</p>';
+
+            // Fungsi 3: Konversi kembali ke huruf
+            const letters = convertToLetters(sum);
+            result += '<p><strong>3. Konversi kembali ke huruf:</strong> ' + letters + '</p>';
+
+            document.getElementById('result').innerHTML = result;
+        }
+    </script>
+</body>
+</html>
