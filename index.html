@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Operasi Matematika Kamus</title>
+    <title>Konversi Kamus</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -25,11 +25,16 @@
             border: 1px solid #ddd;
             padding: 10px;
         }
+        .explanation {
+            font-size: 0.9em;
+            color: #666;
+            margin-top: 5px;
+        }
     </style>
 </head>
 <body>
-    <h1>Operasi Matematika Kamus</h1>
-    <input type="text" id="inputText" placeholder="Masukkan kalimat atau angka">
+    <h1>Konversi Kamus</h1>
+    <input type="text" id="inputText" placeholder="Masukkan kalimat">
     <button onclick="processInput()">Proses</button>
     <div id="result"></div>
 
@@ -44,51 +49,97 @@
         };
 
         const reversedKamus = {
-            '0': 'A', '1': 'B', '2': 'E', '3': 'F', '4': 'I', '5': 'J', '6': 'O', '7': 'P', '8': 'U', '9': 'V'
+            '0': 'A', '1': 'B', '2': 'E', '3': 'F', '4': 'I', '5': 'J', '6': 'O', '7': 'P', '8': 'T', '9': 'U'
         };
 
-        function convertToNumbers(input) {
+        function convertToBilangan(input) {
             return input.split('').map(char => kamus[char] || char).join(' ');
         }
 
-        function alternateSum(numbers) {
+        function alternateSumSubtract(numbers) {
             const nums = numbers.split(' ').map(Number);
-            return nums.reduce((sum, num, index) => index % 2 === 0 ? sum + num : sum - num, 0);
+            let result = nums[0];
+            let explanation = nums[0].toString();
+            for (let i = 1; i < nums.length; i++) {
+                if (i % 2 === 1) {
+                    result -= nums[i];
+                    explanation += ` - ${nums[i]}`;
+                } else {
+                    result += nums[i];
+                    explanation += ` + ${nums[i]}`;
+                }
+            }
+            return { result, explanation };
         }
 
-        function convertToLetters(number) {
+        function convertToAbjad(number) {
             const absNumber = Math.abs(number);
             let result = '';
             let remaining = absNumber;
+            let explanation = `${absNumber} = `;
 
             while (remaining > 0 || result.length === 0) {
                 for (let i = 9; i >= 0; i--) {
                     if (remaining >= i || result.length === 0) {
                         result += reversedKamus[i.toString()];
                         remaining -= i;
+                        explanation += (explanation.endsWith('= ') ? '' : ' + ') + i;
                         break;
                     }
                 }
             }
 
-            return result;
+            explanation += ` = ${result}`;
+            return { result, explanation };
+        }
+
+        function processStep4(input) {
+            const numbers = input.split('').map(char => kamus[char]).join('');
+            const sum = numbers.split('').reduce((a, b) => parseInt(a) + parseInt(b), 0);
+            const explanation = `${input} = ${numbers.split('').join(' + ')} = ${sum}`;
+            return { result: convertToAbjad(sum).result, explanation };
+        }
+
+        function processStep5(input) {
+            const result = input.split('').map(char => {
+                const num = parseInt(kamus[char]);
+                return ((num + 1) % 10).toString();
+            }).join(' ');
+            const explanation = input.split('').map(char => {
+                const num = parseInt(kamus[char]);
+                return `${char}(${num}) + 1 = ${(num + 1) % 10}`;
+            }).join(', ');
+            return { result, explanation };
         }
 
         function processInput() {
             const input = document.getElementById('inputText').value;
             let result = '<h2>Hasil:</h2>';
 
-            // Fungsi 1: Konversi ke angka
-            const numbers = convertToNumbers(input);
-            result += '<p><strong>1. Konversi ke angka:</strong> ' + numbers + '</p>';
+            // Langkah 1
+            const bilangan = convertToBilangan(input);
+            result += `<p><strong>1. Konversi ke bilangan:</strong> ${bilangan}</p>`;
+            result += `<p class="explanation">Penjelasan: ${input.split('').map(char => `${char} = ${kamus[char]}`).join(', ')}</p>`;
 
-            // Fungsi 2: Penjumlahan dan pengurangan bergantian
-            const sum = alternateSum(numbers);
-            result += '<p><strong>2. Penjumlahan dan pengurangan:</strong> ' + sum + '</p>';
+            // Langkah 2
+            const { result: sumSubtract, explanation: sumSubtractExplanation } = alternateSumSubtract(bilangan);
+            result += `<p><strong>2. Penjumlahan dan pengurangan:</strong> ${sumSubtract}</p>`;
+            result += `<p class="explanation">Penjelasan: ${sumSubtractExplanation} = ${sumSubtract}</p>`;
 
-            // Fungsi 3: Konversi kembali ke huruf
-            const letters = convertToLetters(sum);
-            result += '<p><strong>3. Konversi kembali ke huruf:</strong> ' + letters + '</p>';
+            // Langkah 3
+            const { result: abjad, explanation: abjadExplanation } = convertToAbjad(sumSubtract);
+            result += `<p><strong>3. Konversi ke abjad:</strong> ${abjad}</p>`;
+            result += `<p class="explanation">Penjelasan: ${abjadExplanation}</p>`;
+
+            // Langkah 4
+            const { result: step4Result, explanation: step4Explanation } = processStep4(abjad);
+            result += `<p><strong>4. Konversi lanjutan:</strong> ${step4Result}</p>`;
+            result += `<p class="explanation">Penjelasan: ${step4Explanation}</p>`;
+
+            // Langkah 5
+            const { result: finalResult, explanation: finalExplanation } = processStep5(step4Result);
+            result += `<p><strong>5. Hasil akhir:</strong> ${finalResult}</p>`;
+            result += `<p class="explanation">Penjelasan: ${finalExplanation}</p>`;
 
             document.getElementById('result').innerHTML = result;
         }
